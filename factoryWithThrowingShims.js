@@ -9,53 +9,76 @@
 
 var ReactPropTypesSecret = require('./lib/ReactPropTypesSecret');
 
+const {
+  alterChainableTypeCheckerWithMeta,
+  primitiveTypeCheckerArgs,
+  anyTypeCheckerArgs,
+  arrayOfTypeCheckerArgs,
+  elementTypeCheckerArgs,
+  elementTypeTypeCheckerArgs,
+  instanceOfTypeCheckerArgs,
+  oneOfTypeCheckerArgs,
+  objectOfTypeCheckerArgs,
+  oneOfTypeTypeCheckerArgs,
+  nodeTypeCheckerArgs,
+  shapeTypeCheckerArgs,
+  exactTypeCheckerArgs,
+  gatherMetaFromPropTypesMap,
+} = require('./propTypeRecords');
+
 function emptyFunction() {}
 function emptyFunctionWithReset() {}
 emptyFunctionWithReset.resetWarningCache = emptyFunction;
 
 module.exports = function() {
-  function shim(props, propName, componentName, location, propFullName, secret) {
-    if (secret === ReactPropTypesSecret) {
-      // It is still safe when called from React.
-      return;
+  const createShim = (type, metaExtender) => {
+    function shim(props, propName, componentName, location, propFullName, secret) {
+      if (secret === ReactPropTypesSecret) {
+        // It is still safe when called from React.
+        return;
+      }
+      var err = new Error(
+        'Calling PropTypes validators directly is not supported by the `prop-types` package. ' +
+          'Use PropTypes.checkPropTypes() to call them. ' +
+          'Read more at http://fb.me/use-check-prop-types',
+      );
+      err.name = 'Invariant Violation';
+      throw err;
     }
-    var err = new Error(
-      'Calling PropTypes validators directly is not supported by the `prop-types` package. ' +
-      'Use PropTypes.checkPropTypes() to call them. ' +
-      'Read more at http://fb.me/use-check-prop-types'
-    );
-    err.name = 'Invariant Violation';
-    throw err;
-  };
-  shim.isRequired = shim;
-  function getShim() {
+
+    shim.isRequired = shim.bind(null);
+
+    alterChainableTypeCheckerWithMeta(shim, type, metaExtender);
+
     return shim;
   };
+
   // Important!
   // Keep this list in sync with production version in `./factoryWithTypeCheckers.js`.
   var ReactPropTypes = {
-    array: shim,
-    bool: shim,
-    func: shim,
-    number: shim,
-    object: shim,
-    string: shim,
-    symbol: shim,
+    array: createShim(...primitiveTypeCheckerArgs('array')),
+    bool: createShim(...primitiveTypeCheckerArgs('boolean')),
+    func: createShim(...primitiveTypeCheckerArgs('function')),
+    number: createShim(...primitiveTypeCheckerArgs('number')),
+    object: createShim(...primitiveTypeCheckerArgs('object')),
+    string: createShim(...primitiveTypeCheckerArgs('string')),
+    symbol: createShim(...primitiveTypeCheckerArgs('symbol')),
 
-    any: shim,
-    arrayOf: getShim,
-    element: shim,
-    elementType: shim,
-    instanceOf: getShim,
-    node: shim,
-    objectOf: getShim,
-    oneOf: getShim,
-    oneOfType: getShim,
-    shape: getShim,
-    exact: getShim,
+    any: createShim(...anyTypeCheckerArgs()),
+    arrayOf: (arg) => createShim(...arrayOfTypeCheckerArgs(arg)),
+    element: createShim(...elementTypeCheckerArgs()),
+    elementType: createShim(...elementTypeTypeCheckerArgs()),
+    instanceOf: (arg) => createShim(...instanceOfTypeCheckerArgs(arg)),
+    node: createShim(...nodeTypeCheckerArgs()),
+    objectOf: (arg) => createShim(...objectOfTypeCheckerArgs(arg)),
+    oneOf: (arg) => createShim(...oneOfTypeCheckerArgs(arg)),
+    oneOfType: (arg) => createShim(...oneOfTypeTypeCheckerArgs(arg)),
+    shape: (arg) => createShim(...shapeTypeCheckerArgs(arg)),
+    exact: (arg) => createShim(...exactTypeCheckerArgs(arg)),
 
     checkPropTypes: emptyFunctionWithReset,
-    resetWarningCache: emptyFunction
+    resetWarningCache: emptyFunction,
+    gatherMetaFromPropTypesMap,
   };
 
   ReactPropTypes.PropTypes = ReactPropTypes;

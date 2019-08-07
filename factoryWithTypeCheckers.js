@@ -14,6 +14,23 @@ var ReactPropTypesSecret = require('./lib/ReactPropTypesSecret');
 var has = require('./lib/has');
 var checkPropTypes = require('./checkPropTypes');
 
+const {
+  alterChainableTypeCheckerWithMeta,
+  primitiveTypeCheckerArgs,
+  anyTypeCheckerArgs,
+  arrayOfTypeCheckerArgs,
+  elementTypeCheckerArgs,
+  elementTypeTypeCheckerArgs,
+  instanceOfTypeCheckerArgs,
+  oneOfTypeCheckerArgs,
+  objectOfTypeCheckerArgs,
+  oneOfTypeTypeCheckerArgs,
+  nodeTypeCheckerArgs,
+  shapeTypeCheckerArgs,
+  exactTypeCheckerArgs,
+  gatherMetaFromPropTypesMap,
+} = require('./propTypeRecords');
+
 var printWarning = function() {};
 
 if (process.env.NODE_ENV !== 'production') {
@@ -167,11 +184,12 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
   // Make `instanceof Error` still work for returned errors.
   PropTypeError.prototype = Error.prototype;
 
-  function createChainableTypeChecker(validate) {
+  function createChainableTypeChecker(validate, type, metaExtender) {
     if (process.env.NODE_ENV !== 'production') {
       var manualPropTypeCallCache = {};
       var manualPropTypeWarningCount = 0;
     }
+
     function checkType(isRequired, props, propName, componentName, location, propFullName, secret) {
       componentName = componentName || ANONYMOUS;
       propFullName = propFullName || propName;
@@ -221,6 +239,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
 
     var chainedCheckType = checkType.bind(null, false);
     chainedCheckType.isRequired = checkType.bind(null, true);
+    alterChainableTypeCheckerWithMeta(chainedCheckType, type, metaExtender);
 
     return chainedCheckType;
   }
@@ -242,11 +261,12 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+
+    return createChainableTypeChecker(validate, ...primitiveTypeCheckerArgs(expectedType));
   }
 
   function createAnyTypeChecker() {
-    return createChainableTypeChecker(emptyFunctionThatReturnsNull);
+    return createChainableTypeChecker(emptyFunctionThatReturnsNull, ...anyTypeCheckerArgs());
   }
 
   function createArrayOfTypeChecker(typeChecker) {
@@ -267,7 +287,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...arrayOfTypeCheckerArgs(typeChecker));
   }
 
   function createElementTypeChecker() {
@@ -279,7 +299,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...elementTypeCheckerArgs());
   }
 
   function createElementTypeTypeChecker() {
@@ -291,7 +311,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...elementTypeTypeCheckerArgs());
   }
 
   function createInstanceTypeChecker(expectedClass) {
@@ -303,7 +323,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...instanceOfTypeCheckerArgs(expectedClass));
   }
 
   function createEnumTypeChecker(expectedValues) {
@@ -338,7 +358,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       });
       return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of value `' + String(propValue) + '` ' + ('supplied to `' + componentName + '`, expected one of ' + valuesString + '.'));
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...oneOfTypeCheckerArgs(expectedValues));
   }
 
   function createObjectOfTypeChecker(typeChecker) {
@@ -361,7 +381,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...objectOfTypeCheckerArgs(typeChecker));
   }
 
   function createUnionTypeChecker(arrayOfTypeCheckers) {
@@ -396,7 +416,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       var expectedTypesMessage = (expectedTypes.length > 0) ? ', expected one of type [' + expectedTypes.join(', ') + ']': '';
       return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`' + expectedTypesMessage + '.'));
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...oneOfTypeTypeCheckerArgs(arrayOfTypeCheckers));
   }
 
   function createNodeChecker() {
@@ -406,7 +426,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...nodeTypeCheckerArgs());
   }
 
   function invalidValidatorError(componentName, location, propFullName, key, type) {
@@ -435,7 +455,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       }
       return null;
     }
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...shapeTypeCheckerArgs(shapeTypes));
   }
 
   function createStrictShapeTypeChecker(shapeTypes) {
@@ -468,7 +488,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
       return null;
     }
 
-    return createChainableTypeChecker(validate);
+    return createChainableTypeChecker(validate, ...exactTypeCheckerArgs(shapeTypes));
   }
 
   function isNode(propValue) {
@@ -604,6 +624,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
 
   ReactPropTypes.checkPropTypes = checkPropTypes;
   ReactPropTypes.resetWarningCache = checkPropTypes.resetWarningCache;
+  ReactPropTypes.gatherMetaFromPropTypesMap = gatherMetaFromPropTypesMap;
   ReactPropTypes.PropTypes = ReactPropTypes;
 
   return ReactPropTypes;
