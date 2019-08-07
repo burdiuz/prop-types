@@ -1,4 +1,4 @@
-# prop-types [![Build Status](https://travis-ci.com/facebook/prop-types.svg?branch=master)](https://travis-ci.org/facebook/prop-types)
+# prop-types
 
 Runtime type checking for React props and similar objects.
 
@@ -7,10 +7,54 @@ components. React (and potentially other libraries—see the checkPropTypes()
 reference below) will check props passed to your components against those
 definitions, and warn in development if they don’t match.
 
-## Installation
+## Information about this fork
+This fork was created to extend PropTypes in a such way that PropTypes can 
+generate a map object of type specs. These specs are saved as `meta` property, 
+so you can grab them like this
+```javascript
+PropTypes.oneOfType([
+  PropTypes.string,
+  PropTypes.number,
+]).isRequired.meta
+```
+Which will return object
+```json
+{
+  "type": "oneOfType",
+  "required": true,
+  "primitive": false,
+  "value": [
+    {
+      "type": "string",
+      "required": false,
+      "primitive": true
+    },
+    {
+      "type": "number",
+      "required": false,
+      "primitive": true
+    }
+  ]
+}
+```
+Or apply to React component PropTypes like this
+```javascript
+PropTypes.gatherMetaFromPropTypesMap(Image.propTypes)
+```
+To retrieve meta data from all PropType definitions for the component.
 
+> While PropTypes silenced in production, meta part works exactly same way in development and production modes.
+
+## Installation
+All the changes are in `meta` branch.
+NPM
 ```shell
-npm install --save prop-types
+npm install --save github:burdiuz/prop-types#meta
+```
+
+Yarn
+```shell
+yarn add github:burdiuz/prop-types#meta
 ```
 
 ## Importing
