@@ -31,10 +31,7 @@ const {
   gatherMetaFromPropTypesMap,
 } = require('./propTypeRecords');
 
-var printWarning = function() {};
-
-if (process.env.NODE_ENV !== 'production') {
-  printWarning = function(text) {
+var printWarning = function(text) {
     var message = 'Warning: ' + text;
     if (typeof console !== 'undefined') {
       console.error(message);
@@ -46,7 +43,6 @@ if (process.env.NODE_ENV !== 'production') {
       throw new Error(message);
     } catch (x) {}
   };
-}
 
 function emptyFunctionThatReturnsNull() {
   return null;

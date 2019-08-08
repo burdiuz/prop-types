@@ -7,14 +7,11 @@
 
 'use strict';
 
-var printWarning = function() {};
-
-if (process.env.NODE_ENV !== 'production') {
   var ReactPropTypesSecret = require('./lib/ReactPropTypesSecret');
   var loggedTypeFailures = {};
   var has = require('./lib/has');
 
-  printWarning = function(text) {
+  var printWarning = function(text) {
     var message = 'Warning: ' + text;
     if (typeof console !== 'undefined') {
       console.error(message);
@@ -26,7 +23,6 @@ if (process.env.NODE_ENV !== 'production') {
       throw new Error(message);
     } catch (x) {}
   };
-}
 
 /**
  * Assert that the values match with the type specs.
@@ -40,7 +36,6 @@ if (process.env.NODE_ENV !== 'production') {
  * @private
  */
 function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
-  if (process.env.NODE_ENV !== 'production') {
     for (var typeSpecName in typeSpecs) {
       if (has(typeSpecs, typeSpecName)) {
         var error;
@@ -86,7 +81,6 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
         }
       }
     }
-  }
 }
 
 /**
@@ -95,9 +89,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
  * @private
  */
 checkPropTypes.resetWarningCache = function() {
-  if (process.env.NODE_ENV !== 'production') {
     loggedTypeFailures = {};
-  }
 }
 
 module.exports = checkPropTypes;
