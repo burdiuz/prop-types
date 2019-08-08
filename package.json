@@ -25,6 +25,7 @@
   },
   "homepage": "https://facebook.github.io/react/",
   "dependencies": {
+    "@actualwave/closure-value": "^0.0.3",
     "loose-envify": "^1.4.0",
     "object-assign": "^4.1.1",
     "react-is": "^16.8.1"
