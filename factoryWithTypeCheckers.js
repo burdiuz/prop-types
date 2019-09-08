@@ -29,6 +29,7 @@ const {
   shapeTypeCheckerArgs,
   exactTypeCheckerArgs,
   gatherMetaFromPropTypesMap,
+  TYPES,
 } = require('./propTypeRecords');
 
 const { printWarning } = require('./printWarning');
@@ -186,7 +187,6 @@ module.exports = function(isValidElement) {
             'Use `PropTypes.checkPropTypes()` to call them. ' +
             'Read more at http://fb.me/use-check-prop-types'
           );
-        }
       }
 
       if (props[propName] == null) {
@@ -587,6 +587,7 @@ module.exports = function(isValidElement) {
     return propValue.constructor.name;
   }
 
+  ReactPropTypes.TYPES = TYPES;
   ReactPropTypes.checkPropTypes = checkPropTypes;
   ReactPropTypes.resetWarningCache = checkPropTypes.resetWarningCache;
   ReactPropTypes.gatherMetaFromPropTypesMap = gatherMetaFromPropTypesMap;

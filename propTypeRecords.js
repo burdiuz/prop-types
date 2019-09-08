@@ -1,5 +1,26 @@
 'use strict';
 
+const TYPES = Object.freeze({
+  array: 'array',
+  bool: 'boolean',
+  func: 'function',
+  number: 'number',
+  object: 'object',
+  string: 'string',
+  symbol: 'symbol',
+  any: 'any',
+  arrayOf: 'arrayOf',
+  element: 'element',
+  elementType: 'elementType',
+  instanceOf: 'instanceOf',
+  oneOf: 'oneOf',
+  objectOf: 'objectOf',
+  oneOfType: 'oneOfType',
+  node: 'node',
+  shape: 'shape',
+  unknown: 'unknown',
+});
+
 const createMeta = (type, required, metaExtender = (meta) => meta) =>
   metaExtender({ type, required, primitive: false });
 
@@ -16,22 +37,22 @@ const primitiveTypeCheckerArgs = (expectedType) => [
   }),
 ];
 
-const anyTypeCheckerArgs = () => ['any'];
+const anyTypeCheckerArgs = () => [TYPES.any];
 
 const arrayOfTypeCheckerArgs = (typeChecker) => [
-  'arrayOf',
+  TYPES.arrayOf,
   (meta) => ({
     ...meta,
     value: typeChecker.meta,
   }),
 ];
 
-const elementTypeCheckerArgs = () => ['element'];
+const elementTypeCheckerArgs = () => [TYPES.element];
 
-const elementTypeTypeCheckerArgs = () => ['elementType'];
+const elementTypeTypeCheckerArgs = () => [TYPES.elementType];
 
 const instanceOfTypeCheckerArgs = (expectedClass) => [
-  'instanceOf',
+  TYPES.instanceOf,
   (meta) => ({
     ...meta,
     value: expectedClass,
@@ -39,7 +60,7 @@ const instanceOfTypeCheckerArgs = (expectedClass) => [
 ];
 
 const oneOfTypeCheckerArgs = (expectedValues) => [
-  'enum',
+  TYPES.oneOf,
   (meta) => ({
     ...meta,
     value: expectedValues,
@@ -47,7 +68,7 @@ const oneOfTypeCheckerArgs = (expectedValues) => [
 ];
 
 const objectOfTypeCheckerArgs = (typeChecker) => [
-  'objectOf',
+  TYPES.objectOf,
   (meta) => ({
     ...meta,
     value: typeChecker.meta,
@@ -55,17 +76,17 @@ const objectOfTypeCheckerArgs = (typeChecker) => [
 ];
 
 const oneOfTypeTypeCheckerArgs = (arrayOfTypeCheckers) => [
-  'oneOfType',
+  TYPES.oneOfType,
   (meta) => ({
     ...meta,
     value: arrayOfTypeCheckers.map(({ meta }) => meta),
   }),
 ];
 
-const nodeTypeCheckerArgs = () => ['node'];
+const nodeTypeCheckerArgs = () => [TYPES.node];
 
 const shapeTypeCheckerArgs = (shapeTypes) => [
-  'shape',
+  TYPES.shape,
   (meta) => ({
     ...meta,
     value: Object.keys(shapeTypes).reduce(
@@ -77,12 +98,22 @@ const shapeTypeCheckerArgs = (shapeTypes) => [
 
 const exactTypeCheckerArgs = shapeTypeCheckerArgs;
 
-const gatherMetaFromPropTypesMap = (propTypes) => {
+const gatherMetaFromPropTypesMap = (propTypes, ignoreUnknown = true) => {
   if (!propTypes) {
     return null;
   }
 
-  return Object.keys(propTypes).reduce((res, key) => ({ ...res, [key]: propTypes[key].meta }), {});
+  return Object.keys(propTypes).reduce((res, key) => {
+    const {
+      [key]: { meta },
+    } = propTypes;
+
+    if (!meta && ignoreUnknown) {
+      return res;
+    }
+
+    return { ...res, [key]: meta || { type: TYPES.unknown, required: false, primitive: false } };
+  }, {});
 };
 
 module.exports = {
@@ -100,4 +131,5 @@ module.exports = {
   shapeTypeCheckerArgs,
   exactTypeCheckerArgs,
   gatherMetaFromPropTypesMap,
+  TYPES,
 };

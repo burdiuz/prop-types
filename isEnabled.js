@@ -4,7 +4,10 @@ const defaultIsEnabled = () => process.env.NODE_ENV !== 'production';
 
 const { get: getIsEnabledFn, set: setIsEnabledFn } = singleValueFactory(defaultIsEnabled);
 
-const FORCED_PROPTYPES = Symbol.get('prop-types-forced');
+/*
+  const FORCED_PROPTYPES = Symbol.get('prop-types-forced');
+*/
+const FORCED_PROPTYPES = '@@prop-types-forced';
 
 const isEnabled = (specs) => getIsEnabledFn()() || (specs && specs[FORCED_PROPTYPES]);
 
@@ -14,7 +17,17 @@ const forcePropTypesCheckOn = (target) => {
   const specs = getSpecs(target);
 
   if (specs) {
-    specs[FORCED_PROPTYPES] = true;
+    /*
+      When Symbols available
+      specs[FORCED_PROPTYPES] = true;
+      When Symbols not available:
+    */
+    Object.defineProperty(specs, FORCED_PROPTYPES, {
+      value:true,
+      configurable: true,
+      writable:false,
+      enumerable: false,
+    });
   }
 
   return target;
