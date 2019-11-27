@@ -23,9 +23,9 @@ const forcePropTypesCheckOn = (target) => {
       When Symbols not available:
     */
     Object.defineProperty(specs, FORCED_PROPTYPES, {
-      value:true,
+      value: true,
       configurable: true,
-      writable:false,
+      writable: false,
       enumerable: false,
     });
   }
