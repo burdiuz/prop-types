@@ -89,10 +89,7 @@ const shapeTypeCheckerArgs = (shapeTypes) => [
   TYPES.shape,
   (meta) => ({
     ...meta,
-    value: Object.keys(shapeTypes).reduce(
-      (result, key) => ({ ...result, [key]: shapeTypes[key] }),
-      {},
-    ),
+    value: Object.keys(shapeTypes).reduce((result, key) => ({ ...result, [key]: shapeTypes[key] }), {}),
   }),
 ];
 

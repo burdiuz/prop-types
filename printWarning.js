@@ -6,9 +6,6 @@ const defaultPrintWarning = (text) => {
   if (typeof console !== 'undefined') {
     console.error(message);
   }
-  try {
-    throw new Error(message);
-  } catch (x) {}
 };
 
 const { get: getPrintWarningFn, set: setPrintWarningFn } = singleValueFactory(defaultPrintWarning);
